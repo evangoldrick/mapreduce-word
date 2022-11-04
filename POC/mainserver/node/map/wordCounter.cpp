@@ -1,0 +1,1 @@
+#include "wordCounter.h"
