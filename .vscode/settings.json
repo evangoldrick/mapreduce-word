@@ -1,4 +1,4 @@
 {
-    "cmake.sourceDirectory": "${workspaceFolder}/POC/mainserver/node/map",
-    "cmake.buildDirectory": "${workspaceFolder}/POC/mainserver/node/map/build"
+    "cmake.sourceDirectory": "${workspaceFolder}/POC/mainserver/cpp",
+    "cmake.buildDirectory": "${workspaceFolder}/POC/mainserver/cpp/build"
 }
