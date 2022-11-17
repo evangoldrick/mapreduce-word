@@ -1,6 +1,4 @@
 {
-    "cmake.sourceDirectory": "${workspaceFolder}/POC/mainserver/cpp",
-    "cmake.buildDirectory": "${workspaceFolder}/POC/mainserver/cpp/build",
     "rust-analyzer.linkedProjects": [
         "${workspaceFolder}/POC/mainserver/rust/first/Cargo.toml",
     ]
