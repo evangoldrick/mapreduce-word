@@ -1,5 +1,5 @@
 {
     "rust-analyzer.linkedProjects": [
-        "${workspaceFolder}/POC/mainserver/rust/first/Cargo.toml",
+        "${workspaceFolder}/controller/Cargo.toml",
     ]
 }
