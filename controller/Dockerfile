@@ -6,6 +6,8 @@ COPY . /app/
 
 WORKDIR /app/
 
+RUN cargo fetch
+
 RUN cargo build
 
 CMD cargo run

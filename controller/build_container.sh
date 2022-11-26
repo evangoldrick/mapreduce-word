@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Only build if the compilation was successful
 # Stop old running process
 docker conatiner stop rocketWebTest
 docker container rm rocketWebTest
