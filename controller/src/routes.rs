@@ -11,12 +11,11 @@ pub struct JustInt {
 }
 
 pub struct MainState {
-    pub word_list_map: std::sync::Arc<std::sync::Mutex<HashMap<u32, TextJson>>>,
+    pub job_map: std::sync::Arc<std::sync::Mutex<HashMap<u32, TextJson>>>,
     pub server_status: std::sync::Arc<std::sync::Mutex<String>>,
-    pub controller_main_thread: std::sync::Arc<std::sync::Mutex<std::thread::JoinHandle<()>>>,
 }
 
-#[get("/words", format = "application/json", data = "<input>")]
+#[rocket::get("/words", format = "application/json", data = "<input>")]
 pub fn get_words(input: String, state: &rocket::State<MainState>) -> (rocket::http::Status, (rocket::http::ContentType, String)) {
     let json: JustInt = match serde_json::from_str(&input) {
         Ok(j) => j,
@@ -26,7 +25,7 @@ pub fn get_words(input: String, state: &rocket::State<MainState>) -> (rocket::ht
         },
     };
 
-    let text_map = match state.clone().word_list_map.lock() {
+    let text_map = match state.clone().job_map.lock() {
         Ok(o) => o,
         Err(err) => panic!("Error {}", err),
     };
@@ -43,7 +42,7 @@ pub fn get_words(input: String, state: &rocket::State<MainState>) -> (rocket::ht
     };
 }
 
-#[post("/words", format = "application/json", data = "<input>")]
+#[rocket::post("/words", format = "application/json", data = "<input>")]
 pub fn add_words(input: String, state: &rocket::State<MainState>) -> (rocket::http::Status, (rocket::http::ContentType, String)) {
     let json: TextJson = match serde_json::from_str(&input) {
         Ok(j) => j,
@@ -53,12 +52,7 @@ pub fn add_words(input: String, state: &rocket::State<MainState>) -> (rocket::ht
         },
     };
 
-    let mut text_map = match state.clone().word_list_map.lock() {
-        Ok(o) => o,
-        Err(err) => panic!("Error {}", err),
-    };
-
-    let mut server_status = match state.clone().server_status.lock() {
+    let mut text_map = match state.clone().job_map.lock() {
         Ok(o) => o,
         Err(err) => panic!("Error {}", err),
     };
@@ -67,30 +61,14 @@ pub fn add_words(input: String, state: &rocket::State<MainState>) -> (rocket::ht
     let res = text_map.insert(json.job_id, json); // Add data to queue
     return match res {
         Some(_) => (rocket::http::Status::Ok, (rocket::http::ContentType::JSON, "".to_string())),
-        None => (rocket::http::Status::Conflict, (rocket::http::ContentType::JSON, format!("{{\"error\":\"Job with id \"{}\" already exists\"}}", job_id))),
+        None => (rocket::http::Status::Conflict, (rocket::http::ContentType::JSON, format!("{{\"error\":\"Job with id \\\"{}\\\" already exists\"}}", job_id))),
     };
 }
 
-#[post("/endprocess")]
-pub fn end_process(state: &rocket::State<MainState>) -> rocket::http::Status {
-    match state.server_status.lock() {
-        Ok(mut o) => {
-            *o = "stopping".to_string();
-            match state.controller_main_thread.lock() {
-                Ok(thread) => {
-                    let x = (&*thread).clone();
-                    x.join();
-                    //match {
-                        //Ok(_) => rocket::http::Status::Ok,
-                        //Err(_) => rocket::http::Status::InternalServerError
-                    //}
-                    rocket::http::Status::InternalServerError
-                },
-                Err(_) => rocket::http::Status::InternalServerError
-            }
-        },
-        Err(_) => rocket::http::Status::InternalServerError
-    }
+#[rocket::post("/endprocess")]
+pub fn end_process(shut: rocket::Shutdown) -> rocket::http::Status {
+    shut.notify();
+    rocket::http::Status::Ok
 }
 
 
