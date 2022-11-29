@@ -23,7 +23,7 @@ pub fn get_words(input: String, state: &rocket::State<MainState>) -> (rocket::ht
     let x: Result<JustInt, serde_json::Error> = serde_json::from_str(&input);
     match x {
         Ok(job_to_look_for) => {
-            match state.clone().job_map.lock() {
+            match state.job_map.lock() {
                 Ok(text_map) => {
                     let mut found: (rocket::http::Status, (rocket::http::ContentType, String)) = (rocket::http::Status::InternalServerError, (rocket::http::ContentType::JSON, format!("{{\"error\":\"Job with id \\\"{}\\\" not found\"}}", job_to_look_for.job_id)));
                     for job in text_map.iter() {
@@ -39,9 +39,6 @@ pub fn get_words(input: String, state: &rocket::State<MainState>) -> (rocket::ht
                 },
                 Err(err) => panic!("Error {}", err),
             }
-        
-
-
         },
         Err(error) => {
             eprintln!("Error {}", error);
@@ -53,7 +50,7 @@ pub fn get_words(input: String, state: &rocket::State<MainState>) -> (rocket::ht
 #[rocket::post("/words", format = "application/json", data = "<input>")]
 pub fn add_words(input: String, state: &rocket::State<MainState>) -> (rocket::http::Status, (rocket::http::ContentType, String)) {
     let s: Result<TextJson, serde_json::Error> = serde_json::from_str(&input);
-    let ret = match s {
+    match s {
         Ok(input_json) => {
             match state.clone().job_map.lock() {
                 Ok(mut text_map) => {
@@ -70,8 +67,7 @@ pub fn add_words(input: String, state: &rocket::State<MainState>) -> (rocket::ht
             eprintln!("Error {}", error);
             (rocket::http::Status::BadRequest, (rocket::http::ContentType::JSON, formatted_error_json(error.to_string())))
         },
-    };
-    return ret;
+    }
 }
 
 #[rocket::post("/endprocess")]
