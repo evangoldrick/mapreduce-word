@@ -1,0 +1,25 @@
+{
+    "containers": [
+        {
+            "imageTag": "map-reduce-controller-image",
+            "containerName": "mapReduceControllerContainer",
+            "directory": "../../controller",
+            "internalPort":8081,
+            "externalPort":8081
+        },
+        {
+            "imageTag": "map-reduce-map-image",
+            "containerName": "mapReduceMapContainer",
+            "directory": "../../map",
+            "internalPort":8082,
+            "externalPort":8082
+        },
+        {
+            "imageTag": "map-reduce-reduce-image",
+            "containerName": "mapReduceReduceContainer",
+            "directory": "../../reduce",
+            "internalPort":8083,
+            "externalPort":8083
+        }
+    ]
+}

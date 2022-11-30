@@ -19,5 +19,8 @@ export default defineConfig({
         test: resolve(__dirname, "test", "index.html")
       }
     }
+  },
+  server: {
+    port: 8080
   }
 })

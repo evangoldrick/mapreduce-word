@@ -1,0 +1,15 @@
+FROM ubuntu
+
+ARG releaseOrDebug="debug"
+
+ARG projectName
+
+#EXPOSE 8080
+
+COPY ./target/${releaseOrDebug}/${projectName} ./Rocket.tom[l] /app/
+
+WORKDIR /app/
+
+ENV APP_MAIN=/app/${projectName}
+
+CMD ${APP_MAIN}

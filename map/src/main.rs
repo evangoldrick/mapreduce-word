@@ -27,7 +27,7 @@ fn main_mapper(jobs: std::sync::Arc<std::sync::Mutex<VecDeque<routes::TextJson>>
         }
 
         dequeued_jobs.clear();
-        std::thread::sleep(core::time::Duration::from_millis(1000));
+        std::thread::sleep(core::time::Duration::from_millis(10));
     }
     println!("Processing thread ended");
 }

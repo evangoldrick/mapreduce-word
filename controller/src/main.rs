@@ -28,7 +28,7 @@ fn main_controller(jobs: std::sync::Arc<std::sync::Mutex<VecDeque<routes::TextJs
         }
 
         dequeued_jobs.clear();
-        std::thread::sleep(time::Duration::from_millis(1000));
+        std::thread::sleep(time::Duration::from_millis(10));
     }
     println!("Processing thread ended");
 }
