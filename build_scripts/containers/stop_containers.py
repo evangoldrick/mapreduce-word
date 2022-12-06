@@ -1,7 +1,7 @@
 import common
 import sys
 import os
-def stop_containers():
+def stop_and_remove_containers():
     containers = common.readJsonFile("containers.json")["containers"]
 
     # Stop old containers
@@ -11,4 +11,4 @@ def stop_containers():
 
 
 if __name__ == "__main__":
-    stop_containers()
+    stop_and_remove_containers()

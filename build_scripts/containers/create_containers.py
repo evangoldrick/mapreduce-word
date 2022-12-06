@@ -28,7 +28,7 @@ additionalArgs.join(processed_argv)
 if len(additionalArgs) > 0:
     additionalArgs += " "
 
-stop_containers.stop_containers()
+stop_containers.stop_and_remove_containers()
 
 for i in containers:
     os.system(f"docker image rm {i['imageTag']}")
