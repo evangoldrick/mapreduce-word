@@ -6,15 +6,19 @@ use std::collections::{ VecDeque };
 
 fn main_controller(
     jobs: std::sync::Arc<std::sync::Mutex<VecDeque<routes::TextJson>>>,
-    state: std::sync::Arc<std::sync::Mutex<String>>
+    state: std::sync::Arc<std::sync::Mutex<common::server_states>>
 ) {
     let mut running = true;
     let mut dequeued_jobs = std::collections::VecDeque::new();
 
     while running {
-        if *state.lock().unwrap() == "stopping".to_string() {
-            running = false;
-            *state.lock().unwrap() = "stopped".to_string();
+        let mut state_value = state.lock().expect("Main state not accessable");
+        match *state_value {
+            common::server_states::stopping => {
+                running = false;
+                *state_value = common::server_states::stopped;
+            },
+            _ => {},
         }
         match jobs.lock() {
             Ok(mut jobs) => {
@@ -40,8 +44,8 @@ fn main_controller(
 
 #[rocket::main]
 async fn main() {
-    let server_status: std::sync::Arc<std::sync::Mutex<String>> = std::sync::Arc::new(
-        std::sync::Mutex::new("running".to_string())
+    let server_status: std::sync::Arc<std::sync::Mutex<common::server_states>> = std::sync::Arc::new(
+        std::sync::Mutex::new(common::server_states::running)
     );
     let server_status_clone = server_status.clone();
 
@@ -60,7 +64,7 @@ async fn main() {
         Err(e) => eprintln!("{:?}", e),
     }
 
-    *server_status.lock().expect("Could not lock sever status variable") = "stopping".to_string();
+    *server_status.lock().expect("Could not lock sever status variable") = common::server_states::running;
     println!("Waiting for processing thread to finish");
     match proccessing_thread.join() {
         Ok(_) => println!("Processing thread joined"),

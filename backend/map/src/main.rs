@@ -4,7 +4,7 @@ mod routes;
 use std::collections::{ VecDeque };
 
 fn main_mapper(
-    jobs: std::sync::Arc<std::sync::Mutex<VecDeque<routes::TextJson>>>,
+    jobs: std::sync::Arc<std::sync::Mutex<VecDeque<common::TextJson>>>,
     state: std::sync::Arc<std::sync::Mutex<String>>
 ) {
     let mut running = true;
