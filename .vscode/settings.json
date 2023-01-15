@@ -3,5 +3,6 @@
         "${workspaceFolder}/controller/Cargo.toml",
         "${workspaceFolder}/map/Cargo.toml",
         "${workspaceFolder}/reduce/Cargo.toml",
-    ]
+    ],
+    "files.insertFinalNewline": true
 }
