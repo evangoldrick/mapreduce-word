@@ -11,7 +11,7 @@ pub struct JustInt {
 
 pub struct MainState {
     pub job_map: std::sync::Arc<std::sync::Mutex<std::collections::VecDeque<TextJson>>>,
-    pub server_status: std::sync::Arc<std::sync::Mutex<common::server_states>>,
+    pub server_status: std::sync::Arc<std::sync::Mutex<common::ServerStates>>,
 }
 
 pub fn formatted_error_json(error_string: String) -> String {
