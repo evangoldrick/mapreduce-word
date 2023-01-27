@@ -1,7 +1,9 @@
 {
     "rust-analyzer.linkedProjects": [
-        "${workspaceFolder}/controller/Cargo.toml",
-        "${workspaceFolder}/map/Cargo.toml",
-        "${workspaceFolder}/reduce/Cargo.toml",
-    ]
+        "${workspaceFolder}/backend/common/Cargo.toml",
+        "${workspaceFolder}/backend/controller/Cargo.toml",
+        "${workspaceFolder}/backend/map/Cargo.toml",
+        "${workspaceFolder}/backend/reduce/Cargo.toml",
+    ],
+    "files.insertFinalNewline": true
 }
