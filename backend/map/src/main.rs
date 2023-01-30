@@ -1,11 +1,11 @@
 mod routes;
 //#[macro_use] extern crate rocket;
 
-use std::collections::{ VecDeque };
+use std::collections::VecDeque;
 
 fn main_mapper(
     jobs: std::sync::Arc<std::sync::Mutex<VecDeque<common::TextJson>>>,
-    state: std::sync::Arc<std::sync::Mutex<String>>
+    state: std::sync::Arc<std::sync::Mutex<String>>,
 ) {
     let mut running = true;
     let mut dequeued_jobs = std::collections::VecDeque::new();
@@ -19,9 +19,8 @@ fn main_mapper(
             Ok(mut jobs) => {
                 // TODO Send data to mappers
                 while !jobs.is_empty() {
-                    dequeued_jobs.push_back(
-                        jobs.pop_front().expect("Tried to pop from empty queue")
-                    );
+                    dequeued_jobs
+                        .push_back(jobs.pop_front().expect("Tried to pop from empty queue"));
                 }
             }
             Err(e) => eprint!("{:?}", e),
@@ -38,31 +37,4 @@ fn main_mapper(
 }
 
 #[rocket::main]
-async fn main() {
-    let server_status: std::sync::Arc<std::sync::Mutex<String>> = std::sync::Arc::new(
-        std::sync::Mutex::new("running".to_string())
-    );
-    let server_status_clone = server_status.clone();
-
-    let jobs1 = std::sync::Arc::new(std::sync::Mutex::new(VecDeque::new()));
-    let jobs2 = jobs1.clone();
-
-    let proccessing_thread = std::thread::spawn(|| { main_mapper(jobs1, server_status_clone) });
-
-    let rocket_server = rocket
-        ::build()
-        .mount("/api/", rocket::routes![routes::add_words, routes::get_words, routes::end_process])
-        .manage(routes::MainState { job_map: jobs2, server_status: server_status.clone() });
-
-    match rocket_server.launch().await {
-        Ok(_) => println!("REST server closed"),
-        Err(e) => eprintln!("{:?}", e),
-    }
-
-    *server_status.lock().expect("Could not lock sever status variable") = "stopping".to_string();
-    println!("Waiting for processing thread to finish");
-    match proccessing_thread.join() {
-        Ok(_) => println!("Processing thread joined"),
-        Err(e) => eprintln!("{:?}", e),
-    }
-}
+async fn main() {}

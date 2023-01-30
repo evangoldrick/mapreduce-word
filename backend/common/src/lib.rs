@@ -11,6 +11,7 @@ pub struct JustInt {
 
 pub enum ServerStates {
     Running,
+    StopRequested,
     Stopping,
     Stopped,
 }
