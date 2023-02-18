@@ -1,17 +1,2 @@
-#[derive(serde::Deserialize, serde::Serialize, Clone)]
-pub struct TextJson {
-    pub text: String,
-    pub job_id: u32,
-}
-
-#[derive(serde::Deserialize, serde::Serialize, Clone)]
-pub struct JustInt {
-    pub job_id: u32,
-}
-
-pub enum ServerStates {
-    Running,
-    StopRequested,
-    Stopping,
-    Stopped,
-}
+pub mod data_structures;
+pub mod rocket_common_main;

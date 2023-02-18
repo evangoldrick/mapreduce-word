@@ -1,19 +1,3 @@
-#[derive(serde::Deserialize, serde::Serialize, Clone)]
-pub struct TextJson {
-    pub text: String,
-    pub job_id: u32,
-}
-
-#[derive(serde::Deserialize, serde::Serialize, Clone)]
-pub struct JustInt {
-    job_id: u32,
-}
-
-pub struct MainState {
-    pub job_map: std::sync::Arc<std::sync::Mutex<std::collections::VecDeque<TextJson>>>,
-    pub server_status: std::sync::Arc<std::sync::Mutex<common::ServerStates>>,
-}
-
 pub fn formatted_error_json(error_string: String) -> String {
     format!("{{\"error\":\"{}\"}}", error_string)
 }
@@ -21,9 +5,10 @@ pub fn formatted_error_json(error_string: String) -> String {
 #[rocket::get("/words", format = "application/json", data = "<input>")]
 pub fn get_words(
     input: String,
-    state: &rocket::State<MainState>,
+    state: &rocket::State<common::data_structures::MainState>,
 ) -> (rocket::http::Status, (rocket::http::ContentType, String)) {
-    let x: Result<JustInt, serde_json::Error> = serde_json::from_str(&input);
+    let x: Result<common::data_structures::JustInt, serde_json::Error> =
+        serde_json::from_str(&input);
     match x {
         Ok(job_to_look_for) => match state.clone().job_map.lock() {
             Ok(text_map) => {
@@ -70,9 +55,10 @@ pub fn get_words(
 #[rocket::post("/words", format = "application/json", data = "<input>")]
 pub fn add_words(
     input: String,
-    state: &rocket::State<MainState>,
+    state: &rocket::State<common::data_structures::MainState>,
 ) -> (rocket::http::Status, (rocket::http::ContentType, String)) {
-    let s: Result<TextJson, serde_json::Error> = serde_json::from_str(&input);
+    let s: Result<common::data_structures::TextJson, serde_json::Error> =
+        serde_json::from_str(&input);
     let ret = match s {
         Ok(input_json) => {
             match state.clone().job_map.lock() {
