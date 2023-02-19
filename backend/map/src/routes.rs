@@ -10,7 +10,7 @@ pub fn get_words(
     let x: Result<common::data_structures::JustInt, serde_json::Error> =
         serde_json::from_str(&input);
     match x {
-        Ok(job_to_look_for) => match state.job_map.lock() {
+        Ok(job_to_look_for) => match state.new_jobs.lock() {
             Ok(text_map) => {
                 let mut found: (rocket::http::Status, (rocket::http::ContentType, String)) = (
                     rocket::http::Status::InternalServerError,
@@ -56,11 +56,11 @@ pub fn add_words(
     input: String,
     state: &rocket::State<common::data_structures::MainState>,
 ) -> (rocket::http::Status, (rocket::http::ContentType, String)) {
-    let s: Result<common::data_structures::TextJson, serde_json::Error> =
+    let s: Result<common::data_structures::JobJson, serde_json::Error> =
         serde_json::from_str(&input);
     match s {
         Ok(input_json) => {
-            match state.clone().job_map.lock() {
+            match state.clone().new_jobs.lock() {
                 Ok(mut text_map) => {
                     text_map.push_back(input_json); // Add data to queue
                     (

@@ -4,7 +4,7 @@ use common::data_structures;
 use std::collections::VecDeque;
 
 fn main_mapper(
-    jobs: std::sync::Arc<std::sync::Mutex<VecDeque<data_structures::TextJson>>>,
+    jobs: std::sync::Arc<std::sync::Mutex<VecDeque<data_structures::JobJson>>>,
     state: std::sync::Arc<std::sync::Mutex<data_structures::ServerState>>,
 ) {
     let mut running = true;

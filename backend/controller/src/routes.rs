@@ -1,71 +1,54 @@
+use common::data_structures::{JobIdType, MainState};
+
 pub fn formatted_error_json(error_string: String) -> String {
     format!("{{\"error\":\"{}\"}}", error_string)
 }
 
-#[rocket::get("/words", format = "application/json", data = "<input>")]
-pub fn get_words(
-    input: String,
-    state: &rocket::State<common::data_structures::MainState>,
+#[rocket::get("/jobs/<id>")]
+pub fn get_job(
+    id: JobIdType,
+    state: &rocket::State<MainState>,
 ) -> (rocket::http::Status, (rocket::http::ContentType, String)) {
-    let x: Result<common::data_structures::JustInt, serde_json::Error> =
-        serde_json::from_str(&input);
-    match x {
-        Ok(job_to_look_for) => match state.clone().job_map.lock() {
-            Ok(text_map) => {
-                let mut found: (rocket::http::Status, (rocket::http::ContentType, String)) = (
-                    rocket::http::Status::InternalServerError,
-                    (
-                        rocket::http::ContentType::JSON,
-                        format!(
-                            "{{\"error\":\"Job with id \\\"{}\\\" not found\"}}",
-                            job_to_look_for.job_id
-                        ),
-                    ),
-                );
+    let mut found: (rocket::http::Status, (rocket::http::ContentType, String)) = (
+        rocket::http::Status::InternalServerError,
+        (
+            rocket::http::ContentType::JSON,
+            format!("{{\"error\":\"Job with id \\\"{}\\\" not found\"}}", id),
+        ),
+    );
 
-                for job in text_map.iter() {
-                    if job.job_id == job_to_look_for.job_id {
-                        found = match serde_json::to_string(&job) {
-                            Ok(res) => (
-                                rocket::http::Status::Ok,
-                                (rocket::http::ContentType::JSON, res),
-                            ),
-                            Err(error) => (
-                                rocket::http::Status::InternalServerError,
-                                (rocket::http::ContentType::JSON, error.to_string()),
-                            ),
-                        };
-                        break;
-                    }
-                }
-                found
-            }
-            Err(err) => panic!("Error {}", err),
-        },
-        Err(error) => {
-            eprintln!("Error {}", error);
+    let text_map = state.in_progress_jobs.lock().unwrap();
+
+    match text_map.get(&id) {
+        Some(res) => (
+            rocket::http::Status::Ok,
+            (rocket::http::ContentType::JSON, format!("{:?}", res)),
+        ),
+        None => (
+            rocket::http::Status::InternalServerError,
             (
-                rocket::http::Status::BadRequest,
-                (rocket::http::ContentType::JSON, "{}".to_string()),
-            )
-        }
+                rocket::http::ContentType::JSON,
+                formatted_error_json("Job not found".to_string()),
+            ),
+        ),
     }
 }
 
-#[rocket::post("/words", format = "application/json", data = "<input>")]
-pub fn add_words(
+#[rocket::post("/jobs", format = "application/json", data = "<input>")]
+pub fn new_job(
     input: String,
     state: &rocket::State<common::data_structures::MainState>,
 ) -> (rocket::http::Status, (rocket::http::ContentType, String)) {
-    let s: Result<common::data_structures::TextJson, serde_json::Error> =
+    let json: Result<common::data_structures::TextJson, serde_json::Error> =
         serde_json::from_str(&input);
-    let ret = match s {
+
+    match json {
         Ok(input_json) => {
-            match state.clone().job_map.lock() {
+            match state.new_jobs.lock() {
                 Ok(mut text_map) => {
                     text_map.push_back(input_json); // Add data to queue
                     (
-                        rocket::http::Status::Ok,
+                        rocket::http::Status::Accepted,
                         (rocket::http::ContentType::JSON, "".to_string()),
                     )
                 }
@@ -91,8 +74,7 @@ pub fn add_words(
                 ),
             )
         }
-    };
-    return ret;
+    }
 }
 
 #[rocket::post("/endprocess")]
