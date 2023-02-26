@@ -1,28 +1,33 @@
 use core::time;
-use std::collections::VecDeque;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 mod routes;
 use common::data_structures;
 
-fn main_controller(state: Arc<Mutex<data_structures::ServerState>>) {
+fn main_controller(state: Arc<RwLock<data_structures::MainStateData>>) {
     let mut running = true;
     //let mut dequeued_jobs = std::collections::VecDeque::new();
 
     while running {
         {
-            let mut state_value = state.lock().unwrap();
+            // Make sure that state is not always locked
+            let data_state = state.read().unwrap();
+            let mut state_value = data_state.server_status.write().unwrap();
             if let data_structures::ServerState::StopRequested = *state_value {
                 running = false;
                 *state_value = data_structures::ServerState::Stopping;
                 //break;
             }
-            let mut jobs_vector = state_value.lock().unwrap();
         }
 
         std::thread::sleep(time::Duration::from_millis(10));
     }
-    let mut state_value = state.lock().expect("Main state not accessable");
+
+    let data_state = state.read().unwrap();
+    let mut state_value = data_state
+        .server_status
+        .write()
+        .expect("Main state not accessable");
     *state_value = data_structures::ServerState::Stopped;
     println!("Processing thread ended");
 }

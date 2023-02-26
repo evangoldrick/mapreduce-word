@@ -1,21 +1,23 @@
 use crate::data_structures;
-use std::collections::{HashMap, VecDeque};
-use std::sync::{Arc, Mutex, RwLock};
+use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
 
 pub async fn rocket_common_main(
     routes: Vec<rocket::Route>,
-    processing_thread: fn(state: Arc<Mutex<data_structures::ServerState>>),
+    processing_thread: fn(state: Arc<RwLock<data_structures::MainStateData>>),
 ) {
     let main_state = data_structures::MainState {
         state: Arc::new(RwLock::new(data_structures::MainStateData {
-            new_jobs: Arc::new(Mutex::new(HashMap::new())),
-            in_progress_jobs: Arc::new(Mutex::new(HashMap::new())),
-            server_status: Arc::new(Mutex::new(data_structures::ServerState::Running)),
+            new_jobs: Arc::new(RwLock::new(HashMap::new())),
+            in_progress_jobs: Arc::new(RwLock::new(HashMap::new())),
+            server_status: Arc::new(RwLock::new(data_structures::ServerState::Running)),
         })),
     };
-    let server_status_clone = main_state.state.clone();
 
-    let proccessing_thread = std::thread::spawn(move || processing_thread(server_status_clone));
+    let server_state_clone = main_state.state.clone();
+    let server_state_clone2 = main_state.state.clone();
+
+    let proccessing_thread = std::thread::spawn(move || processing_thread(server_state_clone));
 
     let rocket_server = rocket::build().mount("/api/", routes).manage(main_state);
 
@@ -26,15 +28,8 @@ pub async fn rocket_common_main(
 
     // Request processing thread to stop
     {
-        let x = main_state
-            .state
-            .read()
-            .unwrap()
-            .server_status
-            .clone()
-            .lock();
-        match x {
-            Err(e) => eprintln!("{:?}", e),
+        //let x = ;
+        match server_state_clone2.read().unwrap().server_status.write() {
             Ok(mut status) => match *status {
                 data_structures::ServerState::Running => {
                     *status = data_structures::ServerState::StopRequested;
@@ -48,7 +43,8 @@ pub async fn rocket_common_main(
                     println!("Processing thread already stopped");
                 }
             },
-        }
+            Err(e) => eprintln!("{:?}", e),
+        };
     }
 
     match proccessing_thread.join() {

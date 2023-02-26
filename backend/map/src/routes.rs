@@ -7,7 +7,7 @@ pub fn get_words(
     input: String,
     state: &rocket::State<common::data_structures::MainState>,
 ) -> (rocket::http::Status, (rocket::http::ContentType, String)) {
-    let x: Result<common::data_structures::JustInt, serde_json::Error> =
+    let x: Result<common::data_structures::JsonInt, serde_json::Error> =
         serde_json::from_str(&input);
     match x {
         Ok(job_to_look_for) => match state.new_jobs.lock() {
