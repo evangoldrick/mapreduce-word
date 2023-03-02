@@ -17,7 +17,9 @@ pub async fn rocket_common_main(
     let server_state_clone = main_state.state.clone();
     let server_state_clone2 = main_state.state.clone();
 
-    let proccessing_thread = std::thread::spawn(move || processing_thread(server_state_clone));
+    let proccessing_thread_handle = std::thread::spawn(move || {
+        processing_thread(server_state_clone);
+    });
 
     let rocket_server = rocket::build().mount("/api/", routes).manage(main_state);
 
@@ -27,28 +29,25 @@ pub async fn rocket_common_main(
     }
 
     // Request processing thread to stop
-    {
-        //let x = ;
-        match server_state_clone2.read().unwrap().server_status.write() {
-            Ok(mut status) => match *status {
-                data_structures::ServerState::Running => {
-                    *status = data_structures::ServerState::StopRequested;
-                    println!("Waiting for processing thread to finish");
-                }
-                data_structures::ServerState::StopRequested
-                | data_structures::ServerState::Stopping => {
-                    println!("Waiting for processing thread to finish");
-                }
-                data_structures::ServerState::Stopped => {
-                    println!("Processing thread already stopped");
-                }
-            },
-            Err(e) => eprintln!("{:?}", e),
-        };
-    }
-
-    match proccessing_thread.join() {
+    match server_state_clone2.read().unwrap().server_status.write() {
+        Ok(mut status) => match *status {
+            data_structures::ServerState::Running => {
+                *status = data_structures::ServerState::StopRequested;
+                println!("Waiting for processing thread to finish");
+            }
+            data_structures::ServerState::StopRequested
+            | data_structures::ServerState::Stopping => {
+                println!("Waiting for processing thread to finish");
+            }
+            data_structures::ServerState::Stopped => {
+                println!("Processing thread already stopped");
+            }
+        },
         Err(e) => eprintln!("{:?}", e),
+    };
+
+    match proccessing_thread_handle.join() {
         Ok(_) => println!("Processing thread joined"),
+        Err(e) => eprintln!("{:?}", e),
     }
 }

@@ -14,10 +14,10 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Cargo launch",
-            "program": "${workspaceFolder}/POC/mainserver/rust/first/target/debug/first",
+            "name": "Controller Local Launch",
+            "program": "${workspaceFolder}/backend/controller/target/debug/controller",
             "args": [],
-            "cwd": "${workspaceFolder}/POC/mainserver/rust/first"
+            "cwd": "${workspaceFolder}/backend/controller/"
         },
         {
         "name": "(gdb) Launch",

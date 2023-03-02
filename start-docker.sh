@@ -1,5 +1,6 @@
 #!/bin/bash
 
-./run-command-in-each-backend.sh "cargo build"
+./run-command-in-each-backend.sh "cargo build --release"
 
-docker compose up -d
+docker compose build
+docker compose up

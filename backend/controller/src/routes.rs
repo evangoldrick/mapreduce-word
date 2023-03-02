@@ -1,30 +1,27 @@
-use common::data_structures::{JobIdType, MainState};
+use common::{
+    data_structures::{ControllerJob, JobHashMap, JobIdType, JobJson, MainState},
+    rocket_common,
+};
 use rand::Rng;
+use rocket::http::{ContentType, Status};
 
-#[rocket::get("/jobs/<id>")]
-pub fn get_job(
-    id: JobIdType,
-    state: &rocket::State<MainState>,
-) -> (rocket::http::Status, (rocket::http::ContentType, String)) {
+#[rocket::get("/job/<id>")]
+pub fn get_job(id: JobIdType, state: &rocket::State<MainState>) -> (Status, (ContentType, String)) {
     let data_state = state.state.read().unwrap();
     let text_map = data_state.in_progress_jobs.read().unwrap();
 
     match text_map.get(&id) {
-        Some(res) => common::rocket_common::json_ok_response(format!("{:?}", res)),
-        None => common::rocket_common::json_response(
-            rocket::http::Status::NoContent,
-            common::rocket_common::formatted_error_json("Job not found".to_string()),
+        Some(res) => rocket_common::json_ok_response(format!("{:?}", res)),
+        None => rocket_common::json_response(
+            Status::NotFound,
+            rocket_common::formatted_error_json("Job not found".to_string()),
         ),
     }
 }
 
-#[rocket::post("/jobs", format = "application/json", data = "<input>")]
-pub fn new_job(
-    input: String,
-    state: &rocket::State<common::data_structures::MainState>,
-) -> (rocket::http::Status, (rocket::http::ContentType, String)) {
-    let json: Result<common::data_structures::ControllerJob, serde_json::Error> =
-        serde_json::from_str(&input);
+#[rocket::post("/job", format = "application/json", data = "<input>")]
+pub fn new_job(input: String, state: &rocket::State<MainState>) -> (Status, (ContentType, String)) {
+    let json: Result<ControllerJob, serde_json::Error> = serde_json::from_str(&input);
 
     match json {
         Ok(input_json) => match state.state.read() {
@@ -46,31 +43,63 @@ pub fn new_job(
                     }
                     new_jobs_map.insert(
                         new_job_num,
-                        common::data_structures::JobJson {
+                        JobJson {
                             text: input_json.text,
                         },
                     );
-                    common::rocket_common::json_accepted_response(new_job_num.to_string())
+                    rocket_common::json_accepted_response(new_job_num.to_string())
                 }
-                Err(error) => common::rocket_common::json_response(
-                    rocket::http::Status::InternalServerError,
-                    common::rocket_common::formatted_error_json(error.to_string()),
+                Err(error) => rocket_common::json_response(
+                    Status::InternalServerError,
+                    rocket_common::formatted_error_json(error.to_string()),
                 ),
             },
-            Err(error) => common::rocket_common::json_response(
-                rocket::http::Status::InternalServerError,
-                common::rocket_common::formatted_error_json(error.to_string()),
+            Err(error) => rocket_common::json_response(
+                Status::InternalServerError,
+                rocket_common::formatted_error_json(error.to_string()),
             ),
         },
-        Err(error) => common::rocket_common::json_response(
-            rocket::http::Status::InternalServerError,
-            common::rocket_common::formatted_error_json(error.to_string()),
+        Err(error) => rocket_common::json_response(
+            Status::InternalServerError,
+            rocket_common::formatted_error_json(error.to_string()),
         ),
     }
 }
 
+#[rocket::get("/jobs")]
+pub fn get_jobs(server_state: &rocket::State<MainState>) -> (Status, (ContentType, String)) {
+    match server_state.state.read() {
+        Ok(server_state_result) => match server_state_result.in_progress_jobs.read() {
+            Ok(jobs) => {
+                let temp = JobHashMap { jobs: jobs.clone() };
+
+                match serde_json::to_string(&temp) {
+                    Ok(json_as_string) => rocket_common::json_ok_response(json_as_string),
+                    Err(e) => rocket_common::json_formatted_error_from_string(
+                        Status::InternalServerError,
+                        e.to_string(),
+                    ),
+                }
+            }
+            Err(e) => rocket_common::json_formatted_error_from_string(
+                Status::InternalServerError,
+                e.to_string(),
+            ),
+        },
+        Err(e) => rocket_common::json_formatted_error_from_string(
+            Status::InternalServerError,
+            e.to_string(),
+        ),
+    }
+}
+
+#[rocket::post("/version")]
+pub fn get_version() -> (Status, (ContentType, String)) {
+    (Status::Ok, (ContentType::JSON, "0.1".to_string()))
+}
+
 #[rocket::post("/endprocess")]
-pub fn end_process(shut: rocket::Shutdown) -> rocket::http::Status {
+pub fn end_process(shut: rocket::Shutdown) -> Status {
     shut.notify();
-    rocket::http::Status::Ok
+    Status::Ok
 }

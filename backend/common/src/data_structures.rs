@@ -14,8 +14,18 @@ pub struct JsonString {
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Clone)]
+pub struct StandardErrorString {
+    pub text: String,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Clone)]
 pub struct Jsonu32 {
     pub number: u32,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Clone)]
+pub struct JobHashMap {
+    pub jobs: HashMap<JobIdType, ControllerJob>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Clone)]
@@ -28,11 +38,20 @@ pub struct ControllerJob {
     pub text: String,
 }
 
+impl ControllerJob {
+    pub fn from(j: &JobJson) -> Self {
+        ControllerJob {
+            text: j.text.clone(),
+        }
+    }
+}
+
 pub struct MainStateData {
     pub new_jobs: Arc<RwLock<HashMap<JobIdType, JobJson>>>,
     pub in_progress_jobs: Arc<RwLock<HashMap<JobIdType, ControllerJob>>>,
     pub server_status: Arc<RwLock<ServerState>>,
 }
+
 pub struct MainState {
     pub state: Arc<RwLock<MainStateData>>,
 }
